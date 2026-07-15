@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpamSentry | AI Email Spam Detector</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div class="brand-name">
+                    <h2>Spam<span>Sentry</span></h2>
+                    <span>Bayesian ML Engine</span>
+                </div>
+            </div>
+            
+            <nav class="nav-menu">
+                <button class="nav-btn active" data-tab="analyzer">
+                    <i class="fa-solid fa-envelope-open-text"></i>
+                    <span>Email Analyzer</span>
+                </button>
+                <button class="nav-btn" data-tab="dataset">
+                    <i class="fa-solid fa-database"></i>
+                    <span>Dataset Manager</span>
+                </button>
+                <button class="nav-btn" data-tab="vocabulary">
+                    <i class="fa-solid fa-spell-check"></i>
+                    <span>Vocabulary Explorer</span>
+                </button>
+                <button class="nav-btn" data-tab="metrics">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Model Analytics</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="model-status">
+                    <div class="status-indicator online"></div>
+                    <div class="status-details">
+                        <p class="status-title">Bayesian Model</p>
+                        <p class="status-desc" id="sidebar-model-info">Trained: 0 samples</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="header">
+                <div class="header-title">
+                    <h1 id="page-title">Email Analyzer</h1>
+                    <p id="page-subtitle" class="subtitle">Check emails in real-time using Bayesian probability modeling</p>
+                </div>
+                <div class="header-actions">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggle-stopwords">
+                        <span class="slider round"></span>
+                    </label>
+                    <span class="toggle-label">Filter Stop Words</span>
+                </div>
+            </header>
+
+            <!-- TAB 1: EMAIL ANALYZER -->
+            <section id="tab-analyzer" class="tab-content active">
+                <div class="analyzer-grid">
+                    <!-- Left: Interactive Editor -->
+                    <div class="card editor-card">
+                        <div class="card-header">
+                            <h3><i class="fa-regular fa-pen-to-square"></i> Input Email Content</h3>
+                            <div class="preset-selector-container">
+                                <select id="preset-selector" class="select-dropdown">
+                                    <option value="" disabled selected>Load a Preset Email...</option>
+                                    <optgroup label="Spam Presets">
+                                        <option value="spam_phishing_bank">Phishing: Bank Alert</option>
+                                        <option value="spam_phishing_netflix">Phishing: Netflix Billing</option>
+                                        <option value="spam_lottery">Scam: Lottery Winner</option>
+                                        <option value="spam_crypto">Scam: Crypto Investment</option>
+                                        <option value="spam_pills">Marketing: Pharmacy Deal</option>
+                                        <option value="spam_fedex">Shipping: FedEx Failed Delivery</option>
+                                    </optgroup>
+                                    <optgroup label="Ham Presets (Safe)">
+                                        <option value="ham_work_timeline">Work: Project Timeline</option>
+                                        <option value="ham_work_sync">Work: Meeting Request</option>
+                                        <option value="ham_personal_dinner">Personal: Dinner Plan</option>
+                                        <option value="ham_newsletter_js">Newsletter: Weekly JS Dev</option>
+                                        <option value="ham_order_shipping">Transaction: Order Shipped</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="editor-container">
+                            <!-- Overlay structure for real-time word highlighting -->
+                            <div class="textarea-wrapper">
+                                <div id="highlight-overlay" class="highlight-overlay"></div>
+                                <textarea id="email-input" placeholder="Type or paste your email here to test the spam filter..." autocomplete="off" spellcheck="false"></textarea>
+                            </div>
+                        </div>
+                        <div class="editor-footer">
+                            <span id="char-count">0 characters | 0 words</span>
+                            <button id="clear-btn" class="btn secondary-btn"><i class="fa-solid fa-eraser"></i> Clear Text</button>
+                        </div>
+                    </div>
+
+                    <!-- Right: Analysis Dashboard -->
+                    <div class="analyzer-sidebar">
+                        <!-- Result Indicator Card -->
+                        <div class="card result-card" id="result-badge-card">
+                            <div class="result-badge" id="result-badge">
+                                <i class="fa-solid fa-circle-question"></i>
+                                <span>Awaiting Input</span>
+                            </div>
+                        </div>
+
+                        <!-- Gauge & Probability Card -->
+                        <div class="card gauge-card">
+                            <h3>Spam Probability</h3>
+                            <div class="gauge-container">
+                                <svg class="gauge" viewBox="0 0 200 200">
+                                    <!-- Gauge backgrounds -->
+                                    <circle class="gauge-bg" cx="100" cy="100" r="85"></circle>
+                                    <circle class="gauge-fill" id="gauge-fill" cx="100" cy="100" r="85" style="stroke-dasharray: 534; stroke-dashoffset: 534;"></circle>
+                                </svg>
+                                <div class="gauge-text">
+                                    <span id="probability-value">0.0%</span>
+                                    <span class="label">Probability</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Highlights Explanation -->
+                        <div class="card explanation-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-chart-pie"></i> Top Influencing Words</h3>
+                            </div>
+                            <div class="word-influence-lists">
+                                <div class="word-list-box spam-list">
+                                    <h4 class="text-spam"><i class="fa-solid fa-triangle-exclamation"></i> Spam Leaning</h4>
+                                    <ul id="spam-words-list">
+                                        <li class="empty-list-msg">No words detected</li>
+                                    </ul>
+                                </div>
+                                <div class="word-list-box ham-list">
+                                    <h4 class="text-ham"><i class="fa-solid fa-circle-check"></i> Ham Leaning</h4>
+                                    <ul id="ham-words-list">
+                                        <li class="empty-list-msg">No words detected</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: DATASET MANAGER -->
+            <section id="tab-dataset" class="tab-content">
+                <div class="dataset-grid">
+                    <!-- Left Column: Add New Sample -->
+                    <div class="card add-sample-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-circle-plus"></i> Add Training Sample</h3>
+                        </div>
+                        <form id="add-sample-form">
+                            <div class="form-group">
+                                <label for="sample-label">Classification Label</label>
+                                <select id="sample-label" class="select-dropdown" required>
+                                    <option value="spam">Spam (Unwanted / Malicious)</option>
+                                    <option value="ham" selected>Ham (Safe / Normal)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="sample-category">Category Focus</label>
+                                <select id="sample-category" class="select-dropdown" required>
+                                    <option value="phishing">Phishing / Account Security</option>
+                                    <option value="financial">Financial Scam / Lottery</option>
+                                    <option value="marketing">Marketing / Advertisements</option>
+                                    <option value="urgency">Urgency / Shipping / Fake Alerts</option>
+                                    <option value="work" selected>Work / Office Tasks</option>
+                                    <option value="personal">Personal / Social</option>
+                                    <option value="newsletter">Newsletters / Subscriptions</option>
+                                    <option value="transactional">Transactional / Order Updates</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="sample-text">Email Message Body</label>
+                                <textarea id="sample-text" placeholder="Enter the text content of the email..." required></textarea>
+                            </div>
+
+                            <button type="submit" class="btn primary-btn btn-block"><i class="fa-solid fa-plus"></i> Add to Dataset</button>
+                        </form>
+                    </div>
+
+                    <!-- Right Column: Dataset Explorer & Stats -->
+                    <div class="dataset-explorer">
+                        <div class="stats-overview-grid">
+                            <div class="card stat-box">
+                                <span class="stat-title">Total Emails</span>
+                                <span class="stat-num" id="total-samples-count">0</span>
+                            </div>
+                            <div class="card stat-box text-spam-glow">
+                                <span class="stat-title">Spam Emails</span>
+                                <span class="stat-num text-spam" id="spam-samples-count">0</span>
+                            </div>
+                            <div class="card stat-box text-ham-glow">
+                                <span class="stat-title">Ham Emails</span>
+                                <span class="stat-num text-ham" id="ham-samples-count">0</span>
+                            </div>
+                            <div class="card stat-box">
+                                <span class="stat-title">Vocabulary Size</span>
+                                <span class="stat-num" id="vocabulary-count">0</span>
+                            </div>
+                        </div>
+
+                        <div class="card dataset-list-card">
+                            <div class="card-header list-header">
+                                <h3><i class="fa-solid fa-list"></i> Database Records</h3>
+                                <div class="list-actions">
+                                    <div class="search-wrapper">
+                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                        <input type="text" id="dataset-search" placeholder="Search emails...">
+                                    </div>
+                                    <button id="retrain-btn" class="btn primary-btn pulse-glow">
+                                        <i class="fa-solid fa-rotate"></i> Retrain Model
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="table-container">
+                                <table id="dataset-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 5%">#</th>
+                                            <th style="width: 15%">Label</th>
+                                            <th style="width: 20%">Category</th>
+                                            <th style="width: 50%">Email Preview</th>
+                                            <th style="width: 10%">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dataset-table-body">
+                                        <!-- Dynamic Content -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="table-pagination">
+                                <button id="prev-page" class="btn secondary-btn btn-sm"><i class="fa-solid fa-chevron-left"></i> Prev</button>
+                                <span id="pagination-info">Page 1 of 1</span>
+                                <button id="next-page" class="btn secondary-btn btn-sm">Next <i class="fa-solid fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: VOCABULARY EXPLORER -->
+            <section id="tab-vocabulary" class="tab-content">
+                <div class="card vocabulary-controls-card">
+                    <div class="vocab-header-controls">
+                        <div class="search-wrapper">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="vocab-search" placeholder="Filter vocabulary by word...">
+                        </div>
+                        <div class="filter-controls">
+                            <div class="control-group">
+                                <label for="vocab-sort">Sort By</label>
+                                <select id="vocab-sort" class="select-dropdown">
+                                    <option value="spamminess" selected>Spam Ratio (High to Low)</option>
+                                    <option value="hamminess">Ham Ratio (High to Low)</option>
+                                    <option value="spamCount">Spam Count (High to Low)</option>
+                                    <option value="hamCount">Ham Count (High to Low)</option>
+                                    <option value="alphabetical">Alphabetical</option>
+                                </select>
+                            </div>
+                            <div class="control-group">
+                                <label for="vocab-filter-class">Word Class</label>
+                                <select id="vocab-filter-class" class="select-dropdown">
+                                    <option value="all" selected>All Words</option>
+                                    <option value="spamLeaning">Spam Leaning Only</option>
+                                    <option value="hamLeaning">Ham Leaning Only</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="vocab-explorer-layout">
+                    <!-- Left: Word Cards Grid -->
+                    <div class="vocab-grid-wrapper">
+                        <div id="vocab-words-grid" class="vocab-words-grid">
+                            <!-- Dynamic Content -->
+                        </div>
+                        <div id="vocab-pagination" class="table-pagination">
+                            <!-- Pagination -->
+                        </div>
+                    </div>
+
+                    <!-- Right: Word Analytics Info Panel -->
+                    <div class="card word-details-card" id="vocab-details-panel">
+                        <div class="details-placeholder">
+                            <i class="fa-solid fa-chart-column"></i>
+                            <h4>Select a Word</h4>
+                            <p>Click on any word badge in the grid to view detailed probability statistics, frequencies, and ratios.</p>
+                        </div>
+                        <div class="details-content hide" id="vocab-details-content">
+                            <!-- Details populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: MODEL PERFORMANCE -->
+            <section id="tab-metrics" class="tab-content">
+                <div class="metrics-layout">
+                    <!-- Top metrics grid -->
+                    <div class="kpi-grid">
+                        <div class="card kpi-card">
+                            <div class="kpi-icon bg-cyan"><i class="fa-solid fa-bullseye"></i></div>
+                            <div class="kpi-data">
+                                <span class="kpi-value" id="metric-accuracy">0.0%</span>
+                                <span class="kpi-title">Accuracy</span>
+                            </div>
+                            <div class="kpi-tooltip">Overall percentage of correctly classified emails (Spam + Ham).</div>
+                        </div>
+
+                        <div class="card kpi-card text-spam-glow">
+                            <div class="kpi-icon bg-rose"><i class="fa-solid fa-filter-circle-xmark"></i></div>
+                            <div class="kpi-data">
+                                <span class="kpi-value text-spam" id="metric-precision">0.0%</span>
+                                <span class="kpi-title">Precision</span>
+                            </div>
+                            <div class="kpi-tooltip">Out of all predicted spam emails, how many were actually spam? (High precision means few safe emails are false-flagged).</div>
+                        </div>
+
+                        <div class="card kpi-card text-ham-glow">
+                            <div class="kpi-icon bg-emerald"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                            <div class="kpi-data">
+                                <span class="kpi-value text-ham" id="metric-recall">0.0%</span>
+                                <span class="kpi-title">Recall (Sensitivity)</span>
+                            </div>
+                            <div class="kpi-tooltip">Out of all actual spam emails, how many did the system catch? (High recall means few spam emails slip into the Inbox).</div>
+                        </div>
+
+                        <div class="card kpi-card">
+                            <div class="kpi-icon bg-amber"><i class="fa-solid fa-balance-scale"></i></div>
+                            <div class="kpi-data">
+                                <span class="kpi-value" id="metric-f1">0.0%</span>
+                                <span class="kpi-title">F1 Score</span>
+                            </div>
+                            <div class="kpi-tooltip">The harmonic mean of Precision and Recall. Represents balance in model performance.</div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom evaluation split & matrix -->
+                    <div class="metrics-grid">
+                        <!-- Confusion Matrix Card -->
+                        <div class="card matrix-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-border-all"></i> Confusion Matrix</h3>
+                            </div>
+                            <div class="matrix-container">
+                                <div class="matrix-grid-box">
+                                    <div class="matrix-header empty"></div>
+                                    <div class="matrix-header label">Actual Ham</div>
+                                    <div class="matrix-header label">Actual Spam</div>
+                                    
+                                    <div class="matrix-row-label">Predicted Ham</div>
+                                    <div class="matrix-cell tn">
+                                        <span class="cell-val" id="cm-tn">0</span>
+                                        <span class="cell-label">True Negative (TN)</span>
+                                    </div>
+                                    <div class="matrix-cell fn">
+                                        <span class="cell-val" id="cm-fn">0</span>
+                                        <span class="cell-label">False Negative (FN)</span>
+                                    </div>
+
+                                    <div class="matrix-row-label">Predicted Spam</div>
+                                    <div class="matrix-cell fp">
+                                        <span class="cell-val" id="cm-fp">0</span>
+                                        <span class="cell-label">False Positive (FP)</span>
+                                    </div>
+                                    <div class="matrix-cell tp">
+                                        <span class="cell-val" id="cm-tp">0</span>
+                                        <span class="cell-label">True Positive (TP)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Settings & Training Setup -->
+                        <div class="card evaluation-settings-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-sliders"></i> Model Evaluation Playground</h3>
+                            </div>
+                            
+                            <div class="evaluation-controls">
+                                <div class="control-group">
+                                    <div class="control-header">
+                                        <label for="validation-split">Validation Split Ratio</label>
+                                        <span id="split-ratio-val">80% Train / 20% Test</span>
+                                    </div>
+                                    <input type="range" id="validation-split" min="50" max="95" value="80" class="slider-input">
+                                    <p class="input-description">Adjust what percentage of the dataset is used for model training versus testing/evaluation.</p>
+                                </div>
+
+                                <div class="playground-stats">
+                                    <div class="play-stat">
+                                        <span>Training Set:</span>
+                                        <strong id="play-train-count">0 emails</strong>
+                                    </div>
+                                    <div class="play-stat">
+                                        <span>Testing Set:</span>
+                                        <strong id="play-test-count">0 emails</strong>
+                                    </div>
+                                </div>
+
+                                <button id="eval-run-btn" class="btn primary-btn pulse-glow btn-block">
+                                    <i class="fa-solid fa-play"></i> Evaluate & Split Dataset
+                                </button>
+                            </div>
+
+                            <div class="metrics-educational-info">
+                                <h4><i class="fa-solid fa-circle-info"></i> How it works</h4>
+                                <p>To compute these metrics objectively, the app splits the dataset. It trains a model on the <strong>Training Set</strong>, and tests it on the unseen <strong>Testing Set</strong>. Because it is evaluated on unseen data, it gives a realistic measure of how the model performs in real-world scenarios.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="classifier.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
